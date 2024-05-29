@@ -1,16 +1,16 @@
 const calcTime = (timestamp) => {
-  const curTime = new Date().getTime() - 9 * 60 * 60 * 1000;
-  const time = new Date(curTime - timestamp);
-  const hour = time.getHours();
-  const minute = time.getMinutes();
-  const second = time.getSeconds();
+  const curTime = new Date().getTime();
+  const timeDiff = curTime - timestamp;
+  const time = new Date(timeDiff);
+  const hour = Math.floor(timeDiff / (1000 * 60 * 60));
+  const minute = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+  const second = Math.floor((timeDiff % (1000 * 60)) / 1000);
 
   if (hour > 0) return `${hour}시간 전`;
   else if (minute > 0) return `${minute}분 전`;
   else if (second > 0) return `${second}초 전`;
-  else "방금 전";
+  return "방금 전";
 };
-
 const renderDate = (data) => {
   const main = document.querySelector("main");
   data.reverse().forEach(async (obj) => {
@@ -52,8 +52,19 @@ const renderDate = (data) => {
 };
 
 const fetchList = async () => {
-  const res = await fetch("/items");
+  const accessToken = window.localStorage.getItem("token");
+  const res = await fetch("/items", {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  if (res.status == 401) {
+    alert("로그인이 필요합니다.");
+    window.location.pathname = "login.html";
+    return;
+  }
   const data = await res.json();
   renderDate(data);
 };
+
 fetchList();
